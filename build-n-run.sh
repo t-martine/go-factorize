@@ -1,1 +1,1 @@
-docker run -it --rm -v "$PWD":/usr/src/factorizer -w /usr/src/factorizer golang bash;
+docker run -it --rm -v "$PWD":/go/src/factorizer -w /go/src/factorizer golang bash;
