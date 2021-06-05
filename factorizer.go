@@ -3,6 +3,8 @@ package main
 import(
 	"fmt"
 	"math"
+	"os"
+	"strconv"
 )
 
 type point struct {
@@ -18,11 +20,21 @@ type point struct {
 		5. (a,b): Current position
 **/
 
-var N int
 
 func main()  {
+	if(len(os.Args) < 2){
+		fmt.Println("You need to proide a number N to factorize as a command line argument!")
+		return
+	}
+	arg := os.Args[1]
 
+	num, _ := strconv.Atoi(arg)
+	
+	fmt.Println("Finding prime Factors for", num)
+	find_factors(num)
+}
 
+func find_factors(N int) (int){
 	done := make(chan int)
 	
 	upper_bound := 20
@@ -31,27 +43,26 @@ func main()  {
 
 
 	for _,s:= range primes {
-		go execute_algorithm(s, done)
+		go execute_algorithm(s, done, N)
 	}
 	fmt.Println("Started", len(primes), "Workers")
 	
 	lucky_worker := <- done
 	fmt.Println("Worker with step size:", lucky_worker, "found it")
+
+	return 0;
 }
 
-func execute_algorithm(step_len int, done chan int) {
-	p := 15554059
-	q := 12367163
-	N = p*q	
+func execute_algorithm(step_len int, done chan int, N int) {
 
 	guess_init := initial_guess(N)
 	current_point := guess_init
 	last_point := guess_init
 	next_point := guess_init
 
-	for ; calculate_distance(current_point) != 0;  {
+	for ; calculate_distance(current_point, N) != 0;  {
 		
-		next_point = make_step(current_point, last_point, step_len)
+		next_point = make_step(current_point, last_point, step_len, N)
 		last_point = current_point
 		current_point = next_point
 
@@ -66,7 +77,7 @@ func initial_guess(N int) (point) {
 	return point{ a:coord, b:coord}
 }
 
-func make_step(current_position point, last_position point, step_len int) (next_position point)  {
+func make_step(current_position point, last_position point, step_len int, N int) (next_position point)  {
 	
 	// Imagine standing in a 2D-plane where (a,b) is a point and abs( N - a*b ) is its value
 	// The plane goes from top left to bottom right (like in a excel sheet) where (p, ) are the columns and (, q) the rows
@@ -78,8 +89,8 @@ func make_step(current_position point, last_position point, step_len int) (next_
 	step_left := point{ a: current_position.a - step_len, b: current_position.b}
 
 
-	dist_bottom := calculate_distance(step_bottom)
-	dist_left := calculate_distance(step_left)
+	dist_bottom := calculate_distance(step_bottom, N)
+	dist_left := calculate_distance(step_left, N)
 
 	distances := []int{dist_bottom, dist_left}
 	
@@ -93,7 +104,7 @@ func make_step(current_position point, last_position point, step_len int) (next_
 	}
 }
 
-func calculate_distance(point point) (int){
+func calculate_distance(point point, N int) (int){
 	return int(math.Abs(float64(N - point.a * point.b )))
 }
 
