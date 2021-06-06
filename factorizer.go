@@ -20,8 +20,11 @@ type point struct {
 		5. (a,b): Current position
 **/
 
+var steps int
 
 func main()  {
+
+	steps = 0;
 	if(len(os.Args) < 2){
 		fmt.Println("You need to proide a number N to factorize as a command line argument!")
 		return
@@ -32,15 +35,17 @@ func main()  {
 	
 	fmt.Println("Finding prime Factors for", num)
 	find_factors(num)
+
+	fmt.Println("Took", steps, "steps")
 }
 
 func find_factors(N int) (int){
 	done := make(chan int)
 	
-	upper_bound := 20
+	upper_bound := 1
 	primes := sieveOfEratosthenes(upper_bound)
 	primes = append(primes, 1)
-
+	//primes =  int[]{1}
 
 	for _,s:= range primes {
 		go execute_algorithm(s, done, N)
@@ -65,6 +70,7 @@ func execute_algorithm(step_len int, done chan int, N int) {
 		next_point = make_step(current_point, last_point, step_len, N)
 		last_point = current_point
 		current_point = next_point
+		steps = steps + 1
 
 	}
 	
