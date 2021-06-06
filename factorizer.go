@@ -45,9 +45,10 @@ func find_factors(N big.Int) (int){
 	//primes = append(primes, 1)
 	//primes := []big.Int{ *big.NewInt(upper_bound) }
 
-	numbers := []int{1,2,3,4,5,6,7,8}
+	numbers := getRangeUpTo(*big.NewInt(1048575))
+	
 	for _,s:= range numbers {
-		go execute_algorithm( *big.NewInt(int64(s)), done, N)
+		go execute_algorithm( s, done, N)
 	}
 	fmt.Println("Started", len(numbers), "Workers")
 	
@@ -64,7 +65,11 @@ func execute_algorithm(step_len big.Int, done chan big.Int, N big.Int) {
 	last_point := guess_init
 	next_point := guess_init
 	dist := big.NewInt(1)
-	for ; ( dist.Cmp( big.NewInt(0)) != 0 ) && ( N.Cmp( &current_point.a ) >  0 &&  N.Cmp( &current_point.b ) >  0 );  {
+	
+	// means that one of the factors is greater than N i.e. we can stop searching with this step size
+	overshoot := false
+
+	for ; ( dist.Cmp( big.NewInt(0)) != 0 ) && !overshoot;  {
 	
 		next_point = make_step(current_point, last_point, step_len, N)
 		last_point = current_point
@@ -72,9 +77,10 @@ func execute_algorithm(step_len big.Int, done chan big.Int, N big.Int) {
 		steps = steps + 1
 		res := calculate_distance(current_point, N)
 		dist = &res
+		overshoot = ( N.Cmp( &current_point.a ) <  0 ||  N.Cmp( &current_point.b ) <  0 )
 	}
 	
-	if( ! (N.Cmp( &current_point.a ) >  0 &&  N.Cmp( &current_point.b ) >  0 ) ){
+	if( overshoot ){
 		fmt.Println("Worker", step_len.String(), "is out of bounds")
 		return
 	}
@@ -134,6 +140,23 @@ func Min(array []big.Int) (big.Int) {
     return min
 }
 
+
+func getRangeUpTo(X big.Int) ([]big.Int){
+
+	var i = X
+	var numbers []big.Int
+	for ; i.Cmp( big.NewInt(0)) > 0;  {
+		
+
+		
+		numbers = append(numbers, i)
+		var j = *big.NewInt(0).Sub(&i, big.NewInt(1))
+
+		i = j
+    }
+
+	return numbers
+}
 
 // return list of primes less than N
 func sieveOfEratosthenes(N int) (primes []int) {
