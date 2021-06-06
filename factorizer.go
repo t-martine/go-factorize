@@ -40,15 +40,16 @@ func main()  {
 func find_factors(N big.Int) (int){
 	done := make(chan big.Int)
 	
-	var upper_bound int64 = 1
+	//var upper_bound int64 = 1
 	//primes := sieveOfEratosthenes(upper_bound)
 	//primes = append(primes, 1)
-	primes := []big.Int{ *big.NewInt(upper_bound) }
+	//primes := []big.Int{ *big.NewInt(upper_bound) }
 
-	for _,s:= range primes {
-		go execute_algorithm(s, done, N)
+	numbers := []int{1,2,3,4,5,6,7,8}
+	for _,s:= range numbers {
+		go execute_algorithm( *big.NewInt(int64(s)), done, N)
 	}
-	fmt.Println("Started", len(primes), "Workers")
+	fmt.Println("Started", len(numbers), "Workers")
 	
 	lucky_worker := <- done
 	fmt.Println("Worker with step size:", lucky_worker.String(), "found it")
@@ -63,8 +64,8 @@ func execute_algorithm(step_len big.Int, done chan big.Int, N big.Int) {
 	last_point := guess_init
 	next_point := guess_init
 	dist := big.NewInt(1)
-	for ; dist.Cmp( big.NewInt(0)) != 0;  {
-		
+	for ; ( dist.Cmp( big.NewInt(0)) != 0 ) && ( N.Cmp( &current_point.a ) >  0 &&  N.Cmp( &current_point.b ) >  0 );  {
+	
 		next_point = make_step(current_point, last_point, step_len, N)
 		last_point = current_point
 		current_point = next_point
@@ -73,6 +74,11 @@ func execute_algorithm(step_len big.Int, done chan big.Int, N big.Int) {
 		dist = &res
 	}
 	
+	if( ! (N.Cmp( &current_point.a ) >  0 &&  N.Cmp( &current_point.b ) >  0 ) ){
+		fmt.Println("Worker", step_len.String(), "is out of bounds")
+		return
+	}
+
 	fmt.Println("Found the factors!", current_point.a.String(), current_point.b.String())
 	done <- step_len
 }
